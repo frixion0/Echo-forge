@@ -1,0 +1,1198 @@
+<html>
+<head>
+  <title>AI Image Generator</title>
+  <style>
+    /* Basic Reset and Body Styles for Dark Theme */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.7; /* Increased line height for readability */
+      margin: 0;
+      padding: 20px;
+      background-color: #1a1a2e; /* Dark blue-purple background */
+      color: #e0e0e0; /* Light grey text */
+      min-height: 100vh; /* Ensure body covers full viewport height */
+      box-sizing: border-box;
+    }
+
+    /* Main Container Styles */
+    .container {
+      max-width: 900px; /* Slightly wider container */
+      margin: 0 auto;
+      background: #162447; /* Slightly lighter dark blue */
+      padding: 30px 40px; /* More padding */
+      border-radius: 10px; /* Rounded corners */
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); /* Neon glow effect */
+      border: 1px solid #00ffff; /* Neon border */
+    }
+
+    /* Headings */
+    h2, h3, h4 {
+      color: #e4f9ff; /* Light blue/cyan */
+      text-shadow: 0 0 8px rgba(0, 255, 255, 0.6); /* Neon glow on text */
+      margin-bottom: 20px;
+    }
+
+    /* Labels */
+    label {
+      display: block;
+      margin-bottom: 8px; /* Increased margin */
+      font-weight: bold;
+      color: #b2f0f7; /* Slightly brighter label color */
+    }
+
+    /* Input Fields, Select, Textarea */
+    input[type="text"], input[type="number"], select, textarea {
+      width: calc(100% - 24px); /* Adjust width for padding/border */
+      padding: 12px; /* More padding */
+      margin-bottom: 18px; /* Increased margin */
+      border: 1px solid #00ffff; /* Neon border */
+      border-radius: 5px; /* Slightly more rounded */
+      font-size: 1.05em; /* Slightly larger font */
+      background-color: #0f1a33; /* Very dark background */
+      color: #e0e0e0; /* Light text */
+      box-shadow: inset 0 0 5px rgba(0, 255, 255, 0.2); /* Inner glow */
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+      border-color: #ff00ff; /* Neon magenta on focus */
+      box-shadow: inset 0 0 8px rgba(255, 0, 255, 0.4), 0 0 10px rgba(255, 0, 255, 0.4); /* Stronger focus glow */
+      outline: none; /* Remove default outline */
+    }
+
+    /* Buttons */
+    button {
+      background-color: #00ffff; /* Neon cyan */
+      color: #1a1a2e; /* Dark text for contrast */
+      padding: 12px 20px; /* More padding */
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      margin-right: 15px; /* Increased margin */
+      margin-bottom: 15px; /* Increased margin */
+      transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+      font-weight: bold;
+      text-transform: uppercase; /* Uppercase text */
+      letter-spacing: 0.5px; /* Add spacing */
+      box-shadow: 0 0 8px rgba(0, 255, 255, 0.4); /* Button glow */
+    }
+
+    button:hover {
+      background-color: #e4f9ff; /* Lighter cyan on hover */
+      color: #0f1a33; /* Darker text on hover */
+      box-shadow: 0 0 12px rgba(0, 255, 255, 0.6); /* Stronger glow on hover */
+      transform: translateY(-2px); /* Slight lift effect */
+    }
+
+    button:active {
+        transform: translateY(0); /* Press effect */
+        box-shadow: 0 0 6px rgba(0, 255, 255, 0.3); /* Reduced glow on active */
+    }
+
+    button:disabled {
+        background-color: #6c757d; /* Grey out disabled buttons */
+        color: #cccccc;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+    }
+
+    /* Image Output Section */
+    #imageOutput {
+      margin-top: 30px; /* Increased margin */
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Larger min width */
+      gap: 20px; /* Increased gap */
+    }
+
+    /* Individual Image Item */
+    .image-item {
+      border: 1px solid #ff00ff; /* Neon magenta border */
+      border-radius: 8px; /* More rounded */
+      padding: 15px; /* More padding */
+      text-align: center;
+      background-color: #1f3a60; /* Darker background */
+      box-shadow: 0 0 10px rgba(255, 0, 255, 0.3); /* Neon magenta glow */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+     .image-item img {
+         width: 100%;
+         height: auto;
+         border: 2px solid #00ffff; /* Neon cyan border */
+         border-radius: 6px; /* Rounded corners */
+         box-shadow: 0 2px 8px rgba(0, 255, 255, 0.2); /* Image glow */
+         object-fit: cover;
+         margin-bottom: 15px; /* Increased margin */
+     }
+    .image-item p {
+        font-size: 0.95em; /* Slightly larger font */
+        color: #b2f0f7; /* Light cyan text */
+        margin-bottom: 15px; /* Increased margin */
+        flex-grow: 1;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+    .image-item button {
+        width: 100%;
+        margin: 5px 0 0 0;
+        background-color: #ffff00; /* Neon yellow for download */
+        color: #1a1a2e; /* Dark text */
+        box-shadow: 0 0 8px rgba(255, 255, 0, 0.4);
+    }
+     .image-item button:hover {
+         background-color: #eaff8c; /* Lighter yellow on hover */
+         box-shadow: 0 0 12px rgba(255, 255, 0, 0.6);
+         transform: translateY(-2px);
+     }
+      .image-item button:active {
+           transform: translateY(0);
+           box-shadow: 0 0 6px rgba(255, 255, 0, 0.3);
+       }
+
+
+    /* Loaders */
+    .loader {
+      border: 4px solid rgba(255, 255, 255, 0.1); /* Light border part */
+      border-top: 4px solid #00ffff; /* Neon cyan spinner */
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite; /* Faster spin */
+      display: inline-block;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Full-screen Loading Overlay */
+    #loadingOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 26, 51, 0.95); /* Darker, more opaque background */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+        display: none;
+        color: #e0e0e0;
+        backdrop-filter: blur(5px); /* Blur effect */
+    }
+     #loadingOverlay .loader {
+         width: 60px; /* Larger loader */
+         height: 60px;
+         border-width: 8px; /* Thicker border */
+         border-top: 8px solid #ff00ff; /* Neon magenta loader */
+         margin: 0;
+         box-shadow: 0 0 20px rgba(255, 0, 255, 0.8); /* Loader glow */
+     }
+     #loadingOverlay p {
+         margin-top: 30px; /* Increased margin */
+         font-size: 1.8em; /* Larger font */
+         color: #e4f9ff; /* Light cyan text */
+         text-align: center;
+         text-shadow: 0 0 10px rgba(0, 255, 255, 0.6); /* Text glow */
+     }
+
+    /* Cancel Button on Loading Overlay */
+    #cancelButton {
+        margin-top: 30px; /* Increased margin */
+        background-color: #ff00ff; /* Neon magenta */
+        color: #1a1a2e; /* Dark text */
+        font-size: 1.2em; /* Larger font */
+        box-shadow: 0 0 8px rgba(255, 0, 255, 0.4); /* Button glow */
+    }
+     #cancelButton:hover {
+         background-color: #e4b2ff; /* Lighter magenta on hover */
+         color: #0f1a33;
+         box-shadow: 0 0 12px rgba(255, 0, 255, 0.6);
+         transform: translateY(-2px);
+     }
+      #cancelButton:active {
+           transform: translateY(0);
+           box-shadow: 0 0 6px rgba(255, 0, 255, 0.3);
+       }
+
+    /* History Panel Toggle Button */
+    .history-panel-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 50px; /* Larger toggle */
+        height: 50px;
+        border-radius: 50%;
+        background-color: #ff00ff; /* Neon magenta */
+        color: #1a1a2e; /* Dark text */
+        font-size: 2em; /* Larger icon */
+        line-height: 50px;
+        text-align: center;
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(255, 0, 255, 0.5); /* Glow */
+        z-index: 20; /* Higher z-index than panel */
+        user-select: none;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+        font-weight: bold; /* Make dots bold */
+    }
+     .history-panel-toggle:hover {
+         background-color: #e4b2ff; /* Lighter magenta */
+         box-shadow: 0 0 15px rgba(255, 0, 255, 0.8);
+         transform: scale(1.1); /* Slight scale effect */
+     }
+     .history-panel-toggle:active {
+         transform: scale(1);
+         box-shadow: 0 0 8px rgba(255, 0, 255, 0.4);
+     }
+
+    /* History Panel */
+    .history-panel {
+        position: fixed;
+        top: 0;
+        right: -350px; /* Wider panel */
+        width: 350px; /* Wider panel */
+        height: 100%;
+        background-color: #0f1a33; /* Very dark background */
+        box-shadow: -8px 0 15px rgba(0, 255, 255, 0.4); /* Neon cyan shadow */
+        transition: right 0.5s cubic-bezier(0.4, 0, 0.2, 1); /* Smoother transition */
+        z-index: 19; /* Below toggle button */
+        padding: 20px;
+        overflow-y: auto;
+        box-sizing: border-box;
+        border-left: 1px solid #00ffff; /* Neon border */
+    }
+
+    .history-panel.open {
+        right: 0;
+    }
+
+    /* History Item */
+    .history-item {
+        border: 1px solid #ff00ff; /* Neon magenta border */
+        border-radius: 6px; /* Rounded corners */
+        padding: 15px; /* More padding */
+        margin-bottom: 20px; /* Increased margin */
+        background-color: #162447; /* Dark blue */
+        cursor: pointer;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 0 5px rgba(255, 0, 255, 0.2); /* Subtle glow */
+    }
+
+    .history-item:hover {
+        background-color: #1f3a60; /* Darker on hover */
+        box-shadow: 0 0 10px rgba(255, 0, 255, 0.5); /* Stronger glow */
+    }
+
+    .history-item img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 10px auto;
+        border-radius: 4px;
+        border: 1px solid #00ffff; /* Neon cyan border */
+    }
+
+    .history-item p {
+        font-size: 0.9em;
+        color: #b2f0f7; /* Light cyan text */
+        margin-bottom: 8px; /* Increased margin */
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
+    .history-item small {
+        display: block;
+        font-size: 0.8em;
+        color: #888; /* Grey text */
+        margin-top: 5px;
+    }
+
+    /* Batch Comparison Section */
+    .batch-comparison-section {
+        margin-top: 40px; /* Increased margin */
+        padding-top: 30px; /* Increased padding */
+        border-top: 1px solid #00ffff; /* Neon cyan border */
+        box-shadow: 0 -5px 10px rgba(0, 255, 255, 0.2); /* Top glow */
+    }
+    .batch-comparison-section .batch-content {
+        display: none; /* Hide batch content by default */
+    }
+     .batch-comparison-section.visible .batch-content {
+         display: block; /* Show batch content when visible */
+     }
+
+    .batch-comparison-toggle {
+        background-color: #ffff00; /* Neon yellow */
+        color: #1a1a2e;
+        margin-bottom: 20px;
+        box-shadow: 0 0 8px rgba(255, 255, 0, 0.4);
+    }
+     .batch-comparison-toggle:hover {
+         background-color: #eaff8c;
+         box-shadow: 0 0 12px rgba(255, 255, 0, 0.6);
+     }
+      .batch-comparison-toggle:active {
+           box-shadow: 0 0 6px rgba(255, 255, 0, 0.3);
+       }
+
+     .batch-prompt-inputs {
+         margin-bottom: 20px;
+         padding: 20px; /* More padding */
+         border: 2px dashed #ff00ff; /* Neon magenta dashed border */
+         border-radius: 8px; /* More rounded */
+         background-color: #1a1a2e; /* Dark background */
+     }
+     .batch-prompt-inputs label {
+         font-size: 0.95em;
+         font-weight: normal;
+         margin-bottom: 5px; /* Increased margin */
+         color: #b2f0f7;
+     }
+      .batch-prompt-inputs input[type="text"] {
+          margin-bottom: 15px; /* Increased margin */
+      }
+      .batch-prompt-item {
+          display: flex;
+          gap: 15px; /* Increased gap */
+          align-items: center;
+          margin-bottom: 15px; /* Increased margin */
+      }
+      .batch-prompt-item input {
+          flex-grow: 1;
+          margin-bottom: 0;
+      }
+      .batch-prompt-item button {
+          flex-shrink: 0;
+          margin: 0;
+          background-color: #ff00ff; /* Neon magenta for remove */
+          color: #1a1a2e;
+          box-shadow: 0 0 8px rgba(255, 0, 255, 0.4);
+      }
+       .batch-prompt-item button:hover {
+           background-color: #e4b2ff;
+           box-shadow: 0 0 12px rgba(255, 0, 255, 0.6);
+       }
+       .batch-prompt-item button:active {
+           box-shadow: 0 0 6px rgba(255, 0, 255, 0.3);
+       }
+      .batch-prompt-item:last-child {
+          margin-bottom: 0;
+      }
+
+    /* Status Message */
+      #statusMessage {
+          margin-top: 20px; /* Increased margin */
+          padding: 15px; /* More padding */
+          border-radius: 5px;
+          background-color: #ffff001a; /* Neon yellow with transparency */
+          border: 1px solid #ffff00; /* Neon yellow border */
+          color: #ffff00; /* Neon yellow text */
+          display: none;
+          font-weight: bold;
+          text-shadow: 0 0 5px rgba(255, 255, 0, 0.5); /* Text glow */
+      }
+      #statusMessage.error {
+           background-color: #ff00ff1a; /* Neon magenta with transparency */
+           border-color: #ff00ff; /* Neon magenta border */
+           color: #ff00ff; /* Neon magenta text */
+           text-shadow: 0 0 5px rgba(255, 0, 255, 0.5); /* Text glow */
+      }
+
+    /* Add remove button style for batch prompts */
+    .batch-prompt-item .remove-prompt-button {
+        background-color: #dc3545; /* Red color for remove */
+        color: white;
+        box-shadow: none; /* No neon glow for remove */
+    }
+     .batch-prompt-item .remove-prompt-button:hover {
+         background-color: #c82333;
+         box-shadow: none;
+     }
+
+    /* Style for 'History is empty.' text */
+    #historyContent p {
+        color: #888; /* Grey text */
+        text-align: center;
+        font-style: italic;
+    }
+
+    /* Adjust layout when batch mode is active */
+    .batch-comparison-section.visible ~ .container > #generateAllModelsButton {
+        display: none; /* Hide generate all models button */
+    }
+    .batch-comparison-section.visible ~ .container > label[for="numImages"],
+    .batch-comparison-section.visible ~ .container > #numImages {
+        display: none; /* Hide num images input and label */
+    }
+
+  </style>
+</head>
+<body>
+  <div class="history-panel-toggle" id="historyToggle">&#x2022;&#x2022;&#x2022;</div>
+
+  <div class="history-panel" id="historyPanel">
+    <h3>History</h3>
+    <div id="historyContent">
+      <!-- History items will be loaded here -->
+      <p>History is empty.</p>
+    </div>
+     <button id="clearHistoryButton" style="width: 100%; margin-top: 20px; background-color: #ff00ff; color: #1a1a2e; box-shadow: 0 0 8px rgba(255, 0, 255, 0.4);">Clear History</button> 
+  </div>
+
+  <div class="container">
+    <h2>AI Image Generator</h2>
+
+    <label for="prompt">Prompt:</label><br>
+    <input type="text" id="prompt" placeholder="Enter your prompt here..." ><br>
+
+    <button id="enhancePromptButton">Enhance Prompt (using AI)</button>
+    <span id="promptEnhanceLoader" class="loader" style="display: none;"></span> 
+    <p id="promptEnhanceStatus" style="display: inline-block; margin-left: 10px; color: #ffff00; text-shadow: 0 0 5px rgba(255, 255, 0, 0.5);"></p>
+
+    <button id="randomPromptButton">Random Prompt</button>
+    <button id="clearPromptButton">Clear Prompt</button>
+
+
+    <label for="model">Select Model:</label><br>
+    <select id="model">
+      <option value="provider-2/shuttle-3-diffusion">shuttle-3-diffusion</option>
+      <option value="provider-2/shuttle-jaguar">shuttle-jaguar</option>
+      <option value="provider-2/shuttle-3.1-aesthetic">shuttle-3.1-aesthetic</option>
+      <!-- Added Models -->
+      <option value="provider-2/flux-1.1-pro-ultra-raw">flux-1.1-pro-ultra-raw</option>
+      <option value="provider-2/flux-1.1-pro-ultra">flux-1.1-pro-ultra</option>
+      <option value="provider-2/flux-dev">flux-dev</option>
+      <option value="provider-2/flux-schnell">flux-schnell</option>
+    </select><br><br>
+
+    <div id="numImagesContainer"> 
+         <label for="numImages">Number of Images (for single model generation):</label><br>
+         <input type="number" id="numImages" value="1" min="1" max="4"><br><br>
+    </div>
+
+
+    <button id="generateButton">Generate Image(s)</button>
+    <button id="generateAllModelsButton">Generate from All Models</button>
+
+    <div id="statusMessage"></div>
+
+
+    <h3>Output:</h3>
+    <div id="imageOutput"></div>
+
+    <!-- Removed Download Source Code Button -->
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="loader"></div>
+        <p id="loadingMessage"></p>
+        <button id="cancelButton">Cancel Generation</button>
+    </div>
+
+
+    <!-- Batch Comparison Section -->
+    <div class="batch-comparison-section" id="batchComparisonSection">
+        <button class="batch-comparison-toggle" id="toggleBatchComparisonButton">Toggle Batch Comparison Mode</button>
+        <div class="batch-content" id="batchContent">
+            <h4>Batch Prompts for Comparison</h4>
+             <p>Enter prompts below to generate and compare them side-by-side using the 'Generate Image(s)' button above. This mode generates 1 image per prompt using the selected model.</p>
+            <div id="batchPromptInputs">
+                <!-- Batch prompt inputs will be added here -->
+            </div>
+             <button id="addBatchPromptButton">Add Another Prompt Input</button>
+        </div>
+    </div>
+
+
+  </div>
+
+  <script type="module">
+    const API_BASE_URL = "https://api.devsdocode.com/v1";
+    const API_KEY = "ddc-free-8e5171eeac9148ed89969cc31002d99d";
+
+    const promptInput = document.getElementById("prompt");
+    const modelSelect = document.getElementById("model");
+    const numImagesInput = document.getElementById("numImages");
+    const imageOutputDiv = document.getElementById("imageOutput");
+    const generateButton = document.getElementById("generateButton");
+    const generateAllModelsButton = document.getElementById("generateAllModelsButton");
+    const enhancePromptButton = document.getElementById("enhancePromptButton");
+    const randomPromptButton = document.getElementById("randomPromptButton");
+    const clearPromptButton = document.getElementById("clearPromptButton");
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const loadingMessage = document.getElementById("loadingMessage");
+    const cancelButton = document.getElementById("cancelButton");
+    const historyToggle = document.getElementById("historyToggle");
+    const historyPanel = document.getElementById("historyPanel");
+    const historyContent = document.getElementById("historyContent");
+    const clearHistoryButton = document.getElementById("clearHistoryButton");
+    const batchComparisonSection = document.getElementById("batchComparisonSection");
+    const toggleBatchComparisonButton = document.getElementById("toggleBatchComparisonButton");
+    const batchPromptInputsDiv = document.getElementById("batchPromptInputs");
+    const addBatchPromptButton = document.getElementById("addBatchPromptButton");
+    const promptEnhanceLoader = document.getElementById("promptEnhanceLoader");
+    const promptEnhanceStatus = document.getElementById("promptEnhanceStatus");
+    const statusMessageDiv = document.getElementById("statusMessage");
+
+    let abortController = null;
+    let imageHistory = [];
+    const HISTORY_STORAGE_KEY = 'imageGenHistory';
+    const MAX_HISTORY_ITEMS = 20;
+    let historyBlobUrls = [];
+
+    async function base64ToBlobUrl(base64, contentType = 'image/png') {
+        try {
+            const res = await fetch(`data:${contentType};base64,${base64}`);
+            const blob = await res.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            historyBlobUrls.push(blobUrl);
+            return blobUrl;
+        } catch (error) {
+            console.error("Error converting base64 to Blob URL:", error);
+            return null;
+        }
+    }
+
+    function revokeBlobUrls() {
+        historyBlobUrls.forEach(url => URL.revokeObjectURL(url));
+        historyBlobUrls = [];
+    }
+
+    async function generateAndDisplayImage(prompt, model, container, signal, addToHistory = true) {
+        showLoading(`Generating image for ${model.split('/').pop()}...`);
+        container.innerHTML = '';
+
+        try {
+            const base64 = await callImageApi(prompt, model, signal);
+            if (base64) {
+                const imageUrl = await base64ToBlobUrl(base64, 'image/png');
+                if (imageUrl) {
+                     const imageItem = document.createElement('div');
+                     imageItem.classList.add('image-item');
+                     imageItem.innerHTML = `
+                         <img src="${imageUrl}" alt="Generated Image">
+                         <p>${model.split('/').pop()}</p>
+                         <button onclick="downloadImage('${imageUrl}', '${prompt.substring(0, 30).replace(/[^a-z0-9]/gi, '_')}_${model.split('/').pop()}.png')">Download</button>
+                     `;
+                     container.appendChild(imageItem);
+
+                     if (addToHistory) {
+                         addImageToHistory({ prompt, model, imageUrl, base64 });
+                     }
+
+                } else {
+                     const errorDiv = document.createElement('div');
+                     errorDiv.classList.add('image-item');
+                     errorDiv.textContent = `Error displaying image for model ${model.split('/').pop()}.`;
+                     container.appendChild(errorDiv);
+                }
+            } else {
+                const errorDiv = document.createElement('div');
+                errorDiv.classList.add('image-item');
+                errorDiv.textContent = `Error generating image for model ${model.split('/').pop()}.`;
+                container.appendChild(errorDiv);
+            }
+        } catch (error) {
+            console.error("Error generating image:", error);
+            const errorDiv = document.createElement('div');
+            errorDiv.classList.add('image-item');
+            errorDiv.textContent = `Error generating image for model ${model}: ${error.message}`;
+            container.appendChild(errorDiv);
+            throw error; 
+        } finally {
+             // Hide loading only after a batch is complete or an error occurs globally
+        }
+    }
+
+    window.downloadImage = (imageUrl, filename) => {
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    async function callChatbotApi(prompt) {
+        const message = `enhance this prompt + ${prompt} + only prompt`;
+        const body = {
+            model: "provider-2/gpt-4o",
+            messages: [{ role: "user", content: message }]
+        };
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/chat/completions`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${API_KEY}`
+                },
+                body: JSON.stringify(body)
+            });
+
+             if (!res.ok) {
+                 let errorDetails = `Status: ${res.status} ${res.statusText}`;
+                 try {
+                     const errorJson = await res.json();
+                     if (errorJson && errorJson.error && errorJson.error.message) {
+                          errorDetails += ` - ${errorJson.error.message}`;
+                     } else {
+                         const errorText = await res.text();
+                         if(errorText) errorDetails += ` - ${errorText}`;
+                     }
+                 } catch (e) {
+                     const errorText = await res.text();
+                     if(errorText) errorDetails += ` - ${errorText}`;
+                 }
+                 console.error("Chatbot API error:", errorDetails);
+                 throw new Error(`Prompt enhancement failed: ${errorDetails}`);
+             }
+
+            const data = await res.json();
+             if (data?.choices?.[0]?.message?.content) {
+                 return data.choices[0].message.content.trim();
+             } else {
+                 console.error("Chatbot API returned unexpected format:", data);
+                 throw new Error("Prompt enhancement failed: Unexpected API response format.");
+             }
+
+        } catch (error) {
+            console.error("Error calling chatbot API:", error);
+            throw error;
+        }
+    }
+
+    let isBatchMode = false;
+
+    generateButton.addEventListener('click', handleGenerateButtonClick);
+
+    async function handleGenerateButtonClick() {
+        if (isBatchMode) {
+            const prompts = Array.from(batchPromptInputsDiv.children).map(item => item.querySelector('input').value.trim()).filter(value => value !== ''); 
+            const model = modelSelect.value;
+
+            if (prompts.length > 0 && model) {
+                 await generateBatchImages(prompts, model);
+            } else {
+                 showStatusMessage("Please enter at least one prompt and select a model for batch generation.", true);
+            }
+
+        } else { 
+            const prompt = promptInput.value.trim();
+            const model = modelSelect.value;
+            const numImages = parseInt(numImagesInput.value);
+
+            if (prompt && model && numImages > 0) {
+                 showLoading("Generating Image(s)...");
+                 imageOutputDiv.innerHTML = ''; 
+
+                 abortController = new AbortController();
+                 const signal = abortController.signal;
+
+                 try {
+                      for (let i = 0; i < numImages; i++) {
+                           const itemContainer = document.createElement('div');
+                           itemContainer.classList.add('image-item');
+                           itemContainer.innerHTML = `<p>Image ${i + 1} (${model.split('/').pop()})</p><div id="single-item-${i}" style="text-align: center;"></div>`;
+                           imageOutputDiv.appendChild(itemContainer);
+
+                            const specificOutputDiv = itemContainer.querySelector(`#single-item-${i}`);
+                           specificOutputDiv.innerHTML = `<div class="loader"></div> Generating...`; 
+
+                           try {
+                               const base64 = await callImageApi(prompt, model, signal);
+                                specificOutputDiv.innerHTML = ''; 
+
+                               if (base64) {
+                                    const imageUrl = await base64ToBlobUrl(base64, 'image/png');
+                                    if (imageUrl) {
+                                         specificOutputDiv.innerHTML = `
+                                             <img src="${imageUrl}" alt="Generated Image">
+                                             <button onclick="downloadImage('${imageUrl}', '${prompt.substring(0, 30).replace(/[^a-z0-9]/gi, '_')}_${model.split('/').pop()}_${i+1}.png')">Download</button>
+                                         `;
+                                        addImageToHistory({ prompt, model, imageUrl, base64 }); 
+                                    } else {
+                                         specificOutputDiv.textContent = `Error displaying image.`;
+                                    }
+                               } else {
+                                   specificOutputDiv.textContent = `Error generating image.`;
+                               }
+                           } catch (error) {
+                                specificOutputDiv.innerHTML = ''; 
+                                if (error.name === 'AbortError') {
+                                     specificOutputDiv.textContent = "Generation cancelled.";
+                                } else {
+                                     console.error(`Error generating image ${i + 1}:`, error);
+                                    specificOutputDiv.textContent = `Error: ${error.message}`;
+                                }
+                                // Don't re-throw here, let other images continue
+                           }
+                      }
+                     showStatusMessage("Generation complete.");
+
+                 } catch (error) {
+                      if (error.name !== 'AbortError') {
+                          console.error("Error during generation:", error);
+                          showStatusMessage(`Error during generation: ${error.message}`, true);
+                      }
+                 } finally {
+                     hideLoading();
+                     abortController = null; 
+                 }
+
+
+            } else {
+                showStatusMessage("Please enter a prompt, select a model, and number of images.", true);
+            }
+        }
+    }
+
+    addBatchPromptButton.addEventListener('click', () => {
+        const promptItemDiv = document.createElement('div');
+        promptItemDiv.classList.add('batch-prompt-item');
+
+        const newPromptInput = document.createElement('input');
+        newPromptInput.type = 'text';
+        newPromptInput.placeholder = `Enter batch prompt ${batchPromptInputsDiv.children.length} here...`; 
+        promptItemDiv.appendChild(newPromptInput);
+
+        batchPromptInputsDiv.appendChild(promptItemDiv);
+    });
+
+    toggleBatchComparisonButton.addEventListener('click', () => {
+        isBatchMode = !isBatchMode;
+        batchComparisonSection.classList.toggle('visible', isBatchMode);
+
+        if (isBatchMode) {
+             toggleBatchComparisonButton.textContent = "Exit Batch Comparison Mode";
+             generateButton.textContent = "Generate Batch Images (using selected model)";
+             generateAllModelsButton.style.display = 'none'; 
+             numImagesInput.parentElement.style.display = 'none'; 
+        } else {
+             toggleBatchComparisonButton.textContent = "Toggle Batch Comparison Mode";
+             generateButton.textContent = "Generate Image(s)";
+             generateAllModelsButton.style.display = ''; 
+             numImagesInput.parentElement.style.display = ''; 
+        }
+         imageOutputDiv.innerHTML = '';
+         hideStatusMessage();
+         hideLoading(); 
+    });
+
+    generateAllModelsButton.addEventListener('click', async () => {
+         const prompt = promptInput.value.trim();
+         const models = Array.from(modelSelect.options).map(option => option.value);
+
+         if (prompt && models.length > 0) {
+              showLoading("Generating from All Models...");
+              imageOutputDiv.innerHTML = ''; 
+
+              abortController = new AbortController();
+              const signal = abortController.signal;
+
+              try {
+                   const generationPromises = models.map(async (model) => {
+                       const itemContainer = document.createElement('div');
+                        itemContainer.classList.add('image-item');
+                        itemContainer.innerHTML = `<p>Model: ${model.split('/').pop()}</p><div id="model-item-${model.replace(/[^a-z0-9]/gi, '-')}" style="text-align: center;"></div>`;
+                       imageOutputDiv.appendChild(itemContainer);
+
+                        const specificOutputDiv = itemContainer.querySelector(`#model-item-${model.replace(/[^a-z0-9]/gi, '-')}`);
+                        specificOutputDiv.innerHTML = `<div class="loader"></div> Generating...`; 
+
+                       try {
+                            const base64 = await callImageApi(prompt, model, signal);
+                           specificOutputDiv.innerHTML = ''; 
+
+                           if (base64) {
+                                const imageUrl = await base64ToBlobUrl(base64, 'image/png');
+                                if (imageUrl) {
+                                     specificOutputDiv.innerHTML = `
+                                         <img src="${imageUrl}" alt="Generated Image">
+                                         <button onclick="downloadImage('${imageUrl}', '${prompt.substring(0, 30).replace(/[^a-z0-9]/gi, '_')}_${model.split('/').pop()}.png')">Download</button>
+                                     `;
+                                    addImageToHistory({ prompt, model, imageUrl, base64 }); 
+                                } else {
+                                     specificOutputDiv.textContent = `Error displaying image.`;
+                                }
+                           } else {
+                               specificOutputDiv.textContent = `Error generating image.`;
+                           }
+                       } catch (error) {
+                            specificOutputDiv.innerHTML = ''; 
+                           if (error.name === 'AbortError') {
+                                specificOutputDiv.textContent = "Generation cancelled.";
+                           } else {
+                                console.error(`Error generating for model ${model}:`, error);
+                               specificOutputDiv.textContent = `Error: ${error.message}`;
+                           }
+                           // Don't re-throw here, let other models continue
+                       }
+                   });
+
+                  await Promise.all(generationPromises.map(p => p.catch(e => e))); 
+
+                  showStatusMessage("All models generation complete.");
+
+              } catch (error) {
+                  if (error.name !== 'AbortError') {
+                       console.error("Error in generate all models:", error);
+                      showStatusMessage(`Error during all models generation: ${error.message}`, true);
+                  }
+              } finally {
+                  hideLoading();
+                   abortController = null; 
+              }
+
+         } else {
+             showStatusMessage("Please enter a prompt to generate from all models.", true);
+         }
+     });
+
+    enhancePromptButton.addEventListener('click', async () => {
+        const prompt = promptInput.value;
+
+        if (prompt) {
+            showPromptEnhanceLoading();
+            try {
+                const enhancedPrompt = await callChatbotApi(prompt);
+                promptInput.value = enhancedPrompt;
+                hidePromptEnhanceLoading("Enhanced prompt successfully.");
+            } catch (error) {
+                console.error("Error enhancing prompt:", error);
+                hidePromptEnhanceLoading(`Error enhancing prompt: ${error.message}`);
+            }
+        } else {
+            showStatusMessage("Please enter a prompt.", true);
+        }
+    });
+
+    randomPromptButton.addEventListener('click', () => {
+        const randomPrompt = "Random Prompt";
+        promptInput.value = randomPrompt;
+    });
+
+    clearPromptButton.addEventListener('click', () => {
+        promptInput.value = "";
+    });
+
+    cancelButton.addEventListener('click', () => {
+        if (abortController) {
+            abortController.abort();
+            abortController = null;
+        }
+    });
+
+    historyToggle.addEventListener('click', () => {
+        historyPanel.classList.toggle('open');
+    });
+
+    function showLoading(message = "Generating Images...") {
+        loadingMessage.textContent = message;
+        loadingOverlay.style.display = "flex";
+        generateButton.disabled = true;
+        generateAllModelsButton.disabled = true;
+        enhancePromptButton.disabled = true;
+        randomPromptButton.disabled = true;
+        clearPromptButton.disabled = true;
+        addBatchPromptButton.disabled = true;
+        toggleBatchComparisonButton.disabled = true;
+        hideStatusMessage(); 
+    }
+
+    function hideLoading() {
+        loadingOverlay.style.display = "none";
+        loadingMessage.textContent = "";
+        generateButton.disabled = false;
+        generateAllModelsButton.disabled = false;
+        enhancePromptButton.disabled = false;
+        randomPromptButton.disabled = false;
+        clearPromptButton.disabled = false;
+        addBatchPromptButton.disabled = false;
+        toggleBatchComparisonButton.disabled = false;
+    }
+
+    function showPromptEnhanceLoading(message = "Enhancing...") {
+        promptEnhanceLoader.style.display = "inline-block";
+        promptEnhanceStatus.textContent = message;
+        enhancePromptButton.disabled = true;
+        generateButton.disabled = true; 
+        generateAllModelsButton.disabled = true;
+        randomPromptButton.disabled = true;
+        clearPromptButton.disabled = true;
+        addBatchPromptButton.disabled = true;
+        toggleBatchComparisonButton.disabled = true;
+        hideStatusMessage(); 
+    }
+
+    function hidePromptEnhanceLoading(status = "") {
+        promptEnhanceLoader.style.display = "none";
+        promptEnhanceStatus.textContent = status; 
+        enhancePromptButton.disabled = false;
+        generateButton.disabled = false;
+        generateAllModelsButton.disabled = false;
+        randomPromptButton.disabled = false;
+        clearPromptButton.disabled = false;
+        addBatchPromptButton.disabled = false;
+        toggleBatchComparisonButton.disabled = false;
+        if (status) {
+             setTimeout(() => { promptEnhanceStatus.textContent = ""; }, 3000);
+         }
+    }
+
+    function showStatusMessage(message, isError = false) {
+        statusMessageDiv.textContent = message;
+        statusMessageDiv.className = isError ? 'error' : ''; 
+        statusMessageDiv.style.display = "block";
+    }
+
+    function hideStatusMessage() {
+         statusMessageDiv.style.display = "none";
+         statusMessageDiv.textContent = "";
+         statusMessageDiv.className = "";
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadHistory(); 
+    });
+
+    window.addEventListener('beforeunload', revokeBlobUrls);
+
+    async function callImageApi(prompt, model, signal) {
+        const body = {
+            model: model,
+            prompt: prompt
+        };
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/images/generations`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${API_KEY}`
+                },
+                body: JSON.stringify(body),
+                signal: signal 
+            });
+
+            if (!res.ok) {
+                 let errorDetails = `Status: ${res.status} ${res.statusText}`;
+                 try {
+                     const errorJson = await res.json();
+                     if (errorJson && errorJson.error && errorJson.error.message) {
+                          errorDetails += ` - ${errorJson.error.message}`;
+                     } else {
+                         const errorText = await res.text();
+                         if(errorText) errorDetails += ` - ${errorText}`;
+                     }
+                 } catch (e) {
+                     const errorText = await res.text();
+                     if(errorText) errorDetails += ` - ${errorText}`;
+                 }
+                 console.error("Image API error:", errorDetails);
+                 throw new Error(`Image generation failed: ${errorDetails}`);
+            }
+
+            const data = await res.json();
+             if (data?.data?.[0]?.b64_json) {
+                 return data.data[0].b64_json; 
+             } else {
+                 throw new Error("Image generation successful but no image data received.");
+             }
+
+        } catch (error) {
+             if (error.name === 'AbortError') {
+                 console.log('Image generation aborted.');
+             } else {
+                 console.error("Error calling image API:", error);
+             }
+             throw error; 
+        }
+    }
+
+    function loadHistory() {
+        const savedHistory = localStorage.getItem(HISTORY_STORAGE_KEY);
+        if (savedHistory) {
+            try {
+                imageHistory = JSON.parse(savedHistory);
+                revokeBlobUrls();
+                imageHistory.forEach(async item => {
+                    if (item.base64 && !item.imageUrl.startsWith('blob:')) {
+                         item.imageUrl = await base64ToBlobUrl(item.base64, 'image/png');
+                    }
+                     if (!item.prompt) item.prompt = "No prompt saved";
+                });
+                renderHistory();
+            } catch (e) {
+                console.error("Failed to load history:", e);
+                imageHistory = [];
+                renderHistory();
+            }
+        } else {
+            renderHistory();
+        }
+    }
+
+    function saveHistory() {
+        const historyToSave = imageHistory.map(item => {
+             const base64 = item.base64 || null;
+             return { prompt: item.prompt, model: item.model, base64: base64, timestamp: item.timestamp };
+        });
+        localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(historyToSave));
+    }
+
+    async function addImageToHistory(item) {
+        if (!item.base64 && item.imageUrl && item.imageUrl.startsWith('blob:')) {
+            try {
+                 const res = await fetch(item.imageUrl);
+                 const blob = await res.blob();
+                 const reader = new FileReader();
+                 reader.onloadend = () => {
+                     item.base64 = reader.result.split(',')[1]; 
+                     addItemToHistoryList(item);
+                 };
+                 reader.readAsDataURL(blob);
+            } catch (error) {
+                console.error("Failed to convert Blob URL to base64 for history:", error);
+                addItemToHistoryList(item);
+            }
+        } else {
+             addItemToHistoryList(item);
+        }
+    }
+
+    function addItemToHistoryList(item) {
+        item.timestamp = new Date().toISOString();
+        if (imageHistory.length >= MAX_HISTORY_ITEMS) {
+             const oldestItem = imageHistory[0];
+             if (oldestItem.imageUrl && oldestItem.imageUrl.startsWith('blob:')) {
+                  const index = historyBlobUrls.indexOf(oldestItem.imageUrl);
+                  if (index > -1) {
+                      URL.revokeObjectURL(historyBlobUrls[index]);
+                      historyBlobUrls.splice(index, 1);
+                  }
+             }
+             imageHistory.shift(); 
+        }
+        imageHistory.push(item);
+        saveHistory();
+        renderHistory();
+    }
+
+    function renderHistory() {
+        historyContent.innerHTML = ''; 
+        if (imageHistory.length === 0) {
+            historyContent.innerHTML = '<p>History is empty.</p>';
+            return;
+        }
+
+        [...imageHistory].reverse().forEach(item => {
+            const historyItemDiv = document.createElement('div');
+            historyItemDiv.classList.add('history-item');
+            const imgHtml = item.imageUrl ? `<img src="${item.imageUrl}" alt="History Image">` : '';
+            const timestamp = item.timestamp ? new Date(item.timestamp).toLocaleString() : 'Unknown time';
+            historyItemDiv.innerHTML = `
+                <p>${item.prompt.substring(0, 100)}${item.prompt.length > 100 ? '...' : ''}</p>
+                <p><strong>Model:</strong> ${item.model.split('/').pop()}</p>
+                ${imgHtml}
+                <small>${timestamp}</small>
+            `;
+            historyItemDiv.addEventListener('click', () => {
+                promptInput.value = item.prompt;
+                modelSelect.value = item.model; 
+                historyPanel.classList.remove('open');
+            });
+            historyContent.appendChild(historyItemDiv);
+        });
+    }
+
+    clearHistoryButton.addEventListener('click', () => {
+        if (confirm("Are you sure you want to clear all history? This cannot be undone.")) {
+             imageHistory = [];
+             saveHistory();
+             revokeBlobUrls(); 
+             renderHistory();
+        }
+    });
+
+    async function generateBatchImages(prompts, model) {
+         showLoading("Generating Batch Images...");
+         imageOutputDiv.innerHTML = ''; 
+
+         const comparisonContainer = document.createElement('div');
+         comparisonContainer.style.display = 'grid';
+         comparisonContainer.style.gridTemplateColumns = `repeat(auto-fit, minmax(250px, 1fr))`; 
+         comparisonContainer.style.gap = '20px';
+         comparisonContainer.style.marginTop = '20px';
+         imageOutputDiv.appendChild(comparisonContainer);
+
+
+         abortController = new AbortController();
+         const signal = abortController.signal;
+
+         try {
+              const generationPromises = prompts.map(async (p, index) => {
+                  const itemContainer = document.createElement('div');
+                   itemContainer.classList.add('image-item'); 
+                   itemContainer.innerHTML = `<p>Prompt ${index + 1}: ${p}</p><div id="batch-item-${index}" style="text-align: center;"></div>`;
+                  comparisonContainer.appendChild(itemContainer);
+
+                  const specificOutputDiv = itemContainer.querySelector(`#batch-item-${index}`);
+                  specificOutputDiv.innerHTML = `<div class="loader"></div> Generating...`; 
+
+                   try {
+                       const base64 = await callImageApi(p, model, signal);
+                       specificOutputDiv.innerHTML = ''; 
+
+                       if (base64) {
+                            const imageUrl = await base64ToBlobUrl(base64, 'image/png');
+                            if (imageUrl) {
+                                specificOutputDiv.innerHTML = `
+                                    <img src="${imageUrl}" alt="Generated Image" style="width: 100%; height: auto; border: 2px solid #ffff00; border-radius: 6px; box-shadow: 0 2px 8px rgba(255, 255, 0, 0.2);">
+                                    <button style="margin-top: 15px; background-color: #00ffff; color: #1a1a2e;" onclick="downloadImage('${imageUrl}', '${p.substring(0, 30).replace(/[^a-z0-9]/gi, '_')}_${model.split('/').pop()}_batch_${index+1}.png')">Download</button>
+                                `;
+                                addImageToHistory({ prompt: p, model, imageUrl, base64 }); 
+                            } else {
+                                specificOutputDiv.textContent = `Error displaying image.`;
+                            }
+                       } else {
+                           specificOutputDiv.textContent = `Error generating image.`;
+                       }
+                   } catch (error) {
+                       specificOutputDiv.innerHTML = ''; 
+                       if (error.name === 'AbortError') {
+                           specificOutputDiv.textContent = "Generation cancelled.";
+                       } else {
+                            console.error(`Error generating batch image for prompt ${index + 1}:`, error);
+                            specificOutputDiv.textContent = `Error: ${error.message}`;
+                       }
+                       // Don't re-throw here, let other batch items continue
+                   }
+              });
+
+             await Promise.all(generationPromises.map(p => p.catch(e => e))); 
+
+             showStatusMessage("Batch generation complete.");
+
+         } catch (error) {
+              if (error.name !== 'AbortError') {
+                  console.error("Error in batch generation:", error);
+                  showStatusMessage(`Error during batch generation: ${error.message}`, true);
+              }
+         } finally {
+             hideLoading();
+             abortController = null; 
+         }
+    }
+  </script>
+</body>
+</html>
