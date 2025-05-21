@@ -1,0 +1,1529 @@
+<html>
+<head>
+  <title>AI Image Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* Basic Reset and Body Styles for Dark Theme */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.7;
+      margin: 0;
+      padding: 20px;
+      background-color: #1a1a2e;
+      color: #e0e0e0;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    /* Main Container Styles */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #162447;
+      padding: 30px 40px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+      border: 1px solid #00ffff;
+      padding: 20px;
+    }
+
+    /* Headings */
+    h2, h3, h4 {
+      color: #e4f9ff;
+      text-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
+      margin-bottom: 20px;
+    }
+
+    /* Labels */
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #b2f0f7;
+    }
+
+    /* Input Fields, Select, Textarea */
+    input[type="text"], input[type="number"], select, textarea {
+      width: calc(100% - 24px);
+      padding: 12px;
+      margin-bottom: 18px;
+      border: 1px solid #00ffff;
+      border-radius: 5px;
+      font-size: 1.05em;
+      background-color: #0f1a33;
+      color: #e0e0e0;
+      box-shadow: inset 0 0 5px rgba(0, 255, 255, 0.2);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+      border-color: #ff00ff;
+      box-shadow: inset 0 0 8px rgba(255, 0, 255, 0.4), 0 0 10px rgba(255, 0, 255, 0.4);
+      outline: none;
+    }
+
+    /* Buttons */
+    button {
+      background-color: #00ffff;
+      color: #1a1a2e;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      margin-right: 15px;
+      margin-bottom: 15px;
+      transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+      box-sizing: border-box;
+    }
+
+    button:hover {
+      background-color: #e4f9ff;
+      color: #0f1a33;
+      box-shadow: 0 0 12px rgba(0, 255, 255, 0.6);
+      transform: translateY(-2px);
+    }
+
+    button:active {
+        transform: translateY(0);
+        box-shadow: 0 0 6px rgba(0, 255, 255, 0.3);
+    }
+
+    button:disabled {
+        background-color: #6c757d;
+        color: #cccccc;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+    }
+
+    /* Image Output Section */
+    #imageOutput {
+      margin-top: 30px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    /* Individual Image Item */
+    .image-item {
+      border: 1px solid #ff00ff;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+      background-color: #1f3a60;
+      box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-sizing: border-box;
+    }
+
+     .image-item img {
+         width: 100%;
+         height: auto;
+         border: 2px solid #00ffff;
+         border-radius: 6px;
+         box-shadow: 0 2px 8px rgba(0, 255, 255, 0.2);
+         object-fit: cover;
+         margin-bottom: 15px;
+     }
+    .image-item p {
+        font-size: 0.95em;
+        color: #b2f0f7;
+        margin-bottom: 15px;
+        flex-grow: 1;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+    .image-item button {
+        width: 100%;
+        margin: 5px 0 0 0;
+        background-color: #ffff00;
+        color: #1a1a2e;
+        box-shadow: 0 0 8px rgba(255, 255, 0, 0.4);
+    }
+     .image-item button:hover {
+         background-color: #eaff8c;
+         box-shadow: 0 0 12px rgba(255, 255, 0, 0.6);
+         transform: translateY(-2px);
+     }
+      .image-item button:active {
+           transform: translateY(0);
+           box-shadow: 0 0 6px rgba(255, 255, 0, 0.3);
+       }
+
+
+    /* Loaders */
+    .loader {
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top: 4px solid #00ffff;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Full-screen Loading Overlay */
+    #loadingOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 26, 51, 0.95);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+        display: none;
+        color: #e0e0e0;
+        backdrop-filter: blur(5px);
+    }
+     #loadingOverlay .loader {
+         width: 60px;
+         height: 60px;
+         border-width: 8px;
+         border-top: 8px solid #ff00ff;
+         margin: 0;
+         box-shadow: 0 0 20px rgba(255, 0, 255, 0.8);
+     }
+     #loadingOverlay p {
+         margin-top: 30px;
+         font-size: 1.8em;
+         color: #e4f9ff;
+         text-align: center;
+         text-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+     }
+
+    /* Cancel Button on Loading Overlay */
+    #cancelButton {
+        margin-top: 30px;
+        background-color: #ff00ff;
+        color: #1a1a2e;
+        font-size: 1.2em;
+        box-shadow: 0 0 8px rgba(255, 0, 255, 0.4);
+    }
+     #cancelButton:hover {
+         background-color: #e4b2ff;
+         color: #0f1a33;
+         box-shadow: 0 0 12px rgba(255, 0, 255, 0.6);
+         transform: translateY(-2px);
+     }
+      #cancelButton:active {
+           transform: translateY(0);
+           box-shadow: 0 0 6px rgba(255, 0, 255, 0.3);
+       }
+
+    /* History Panel Toggle Button */
+    .history-panel-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: #ff00ff;
+        color: #1a1a2e;
+        font-size: 2em;
+        line-height: 50px;
+        text-align: center;
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        z-index: 20;
+        user-select: none;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+        font-weight: bold;
+    }
+     .history-panel-toggle:hover {
+         background-color: #e4b2ff;
+         box-shadow: 0 0 15px rgba(255, 0, 255, 0.8);
+         transform: scale(1.1);
+     }
+     .history-panel-toggle:active {
+         transform: scale(1);
+         box-shadow: 0 0 8px rgba(255, 0, 255, 0.4);
+     }
+
+    /* History Panel */
+    .history-panel {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 80vw;
+        max-width: 350px;
+        height: 100%;
+        background-color: #0f1a33;
+        box-shadow: -8px 0 15px rgba(0, 255, 255, 0.4);
+        transition: right 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 19;
+        padding: 20px;
+        overflow-y: auto;
+        box-sizing: border-box;
+        border-left: 1px solid #00ffff;
+    }
+
+    .history-panel.open {
+        right: 0;
+    }
+
+    /* History Item */
+    .history-item {
+        border: 1px solid #ff00ff;
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 20px;
+        background-color: #162447;
+        cursor: pointer;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 0 5px rgba(255, 0, 255, 0.2);
+    }
+
+    .history-item:hover {
+        background-color: #1f3a60;
+        box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+    }
+
+    .history-item img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 10px auto;
+        border-radius: 4px;
+        border: 1px solid #00ffff;
+    }
+
+    .history-item p {
+        font-size: 0.9em;
+        color: #b2f0f7;
+        margin-bottom: 8px;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
+    .history-item small {
+        display: block;
+        font-size: 0.8em;
+        color: #888;
+        margin-top: 5px;
+    }
+
+    /* Batch Comparison Section */
+    .batch-comparison-section {
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 1px solid #00ffff;
+        box-shadow: 0 -5px 10px rgba(0, 255, 255, 0.2);
+    }
+    .batch-comparison-section .batch-content {
+        display: none;
+    }
+     .batch-comparison-section.visible .batch-content {
+         display: block;
+     }
+
+    .batch-comparison-toggle {
+        background-color: #ffff00;
+        color: #1a1a2e;
+        margin-bottom: 20px;
+        box-shadow: 0 0 8px rgba(255, 255, 0, 0.4);
+    }
+     .batch-comparison-toggle:hover {
+         background-color: #eaff8c;
+         box-shadow: 0 0 12px rgba(255, 255, 0, 0.6);
+     }
+      .batch-comparison-toggle:active {
+           box-shadow: 0 0 6px rgba(255, 255, 0, 0.3);
+       }
+
+     .batch-prompt-inputs {
+         margin-bottom: 20px;
+         padding: 20px;
+         border: 2px dashed #ff00ff;
+         border-radius: 8px;
+         background-color: #1a1a2e;
+     }
+     .batch-prompt-inputs label {
+         font-size: 0.95em;
+         font-weight: normal;
+         margin-bottom: 5px;
+         color: #b2f0f7;
+     }
+      .batch-prompt-inputs input[type="text"] {
+          margin-bottom: 15px;
+      }
+      .batch-prompt-item {
+          display: flex;
+          gap: 15px;
+          align-items: center;
+          margin-bottom: 15px;
+      }
+      .batch-prompt-item input {
+          flex-grow: 1;
+          margin-bottom: 0;
+      }
+      .batch-prompt-item button {
+          flex-shrink: 0;
+          margin: 0;
+          background-color: #ff00ff;
+          color: #1a1a2e;
+          box-shadow: 0 0 8px rgba(255, 0, 255, 0.4);
+      }
+       .batch-prompt-item button:hover {
+           background-color: #e4b2ff;
+           box-shadow: 0 0 12px rgba(255, 0, 255, 0.6);
+       }
+       .batch-prompt-item button:active {
+           box-shadow: 0 0 6px rgba(255, 0, 255, 0.3);
+       }
+      .batch-prompt-item:last-child {
+          margin-bottom: 0;
+      }
+
+    /* Status Message */
+      #statusMessage {
+          margin-top: 20px;
+          padding: 15px;
+          border-radius: 5px;
+          background-color: #ffff001a;
+          border: 1px solid #ffff00;
+          color: #ffff00;
+          display: none;
+          font-weight: bold;
+          text-shadow: 0 0 5px rgba(255, 255, 0, 0.5);
+      }
+      #statusMessage.error {
+           background-color: #ff00ff1a;
+           border-color: #ff00ff;
+           color: #ff00ff;
+           text-shadow: 0 0 5px rgba(255, 0, 255, 0.5);
+      }
+
+    /* Add remove button style for batch prompts */
+    .batch-prompt-item .remove-prompt-button {
+        background-color: #dc3545;
+        color: white;
+        box-shadow: none;
+    }
+     .batch-prompt-item .remove-prompt-button:hover {
+         background-color: #c82333;
+         box-shadow: none;
+     }
+
+    /* Style for 'History is empty.' text */
+    #historyContent p {
+        color: #888;
+        text-align: center;
+        font-style: italic;
+    }
+
+    /* Adjust layout when batch mode is active */
+    .batch-comparison-section.visible ~ .container > #generateAllModelsButton {
+        display: none;
+    }
+    .batch-comparison-section.visible ~ .container > #generateAllModelsSettingsToggle {
+        display: none;
+    }
+    .batch-comparison-section.visible ~ .container > label[for="numImages"],
+    .batch-comparison-section.visible ~ .container > #numImages {
+        display: none;
+    }
+
+    /* All Models Settings Overlay */
+    #allModelsSettings {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 26, 51, 0.95);
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 50;
+        backdrop-filter: blur(5px);
+        overflow-y: auto;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    #allModelsSettings.visible {
+        display: flex;
+    }
+
+     /* Inner container for settings content */
+    #allModelsSettings .settings-content {
+        background-color: #162447;
+        padding: 30px 40px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        border: 1px solid #00ffff;
+        max-width: 600px;
+        width: 95%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-sizing: border-box;
+        position: relative; 
+    }
+
+    #allModelsSettings h4 {
+        margin-top: 0;
+         text-align: center;
+    }
+     .model-toggle-item {
+         display: flex;
+         justify-content: space-between;
+         align-items: center;
+         margin-bottom: 10px;
+         padding-bottom: 10px;
+         border-bottom: 1px dotted #1f3a60;
+     }
+      .model-toggle-item:last-child {
+          border-bottom: none;
+          margin-bottom: 0;
+          padding-bottom: 0;
+      }
+     .model-toggle-item span {
+         flex-grow: 1;
+         margin-right: 15px;
+         color: #e0e0e0;
+         word-break: break-word;
+     }
+     .model-toggle-button {
+         flex-shrink: 0;
+         padding: 5px 10px;
+         font-size: 0.8em;
+         margin: 0;
+     }
+      .model-toggle-button.on {
+          background-color: #00ff00;
+          color: #1a1a2e;
+          box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+      }
+       .model-toggle-button.on:hover {
+           background-color: #90ee90;
+           box-shadow: 0 0 12px rgba(0, 255, 0, 0.6);
+       }
+       .model-toggle-button.on:active {
+           box-shadow: 0 0 6px rgba(0, 255, 0, 0.3);
+       }
+      .model-toggle-button.off {
+          background-color: #dc3545;
+          color: white;
+          box-shadow: 0 0 8px rgba(220, 53, 69, 0.4);
+      }
+       .model-toggle-button.off:hover {
+           background-color: #e95461;
+           box-shadow: 0 0 12px rgba(220, 53, 69, 0.6);
+       }
+        .model-toggle-button.off:active {
+            box-shadow: 0 0 6px rgba(220, 53, 69, 0.3);
+        }
+
+    /* Close button for settings overlay */
+    #closeSettingsButton {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background-color: #dc3545;
+        color: white;
+        font-size: 1.5em;
+        line-height: 30px;
+        text-align: center;
+        cursor: pointer;
+        border: none;
+        padding: 0;
+        margin: 0;
+        box-shadow: 0 0 8px rgba(220, 53, 69, 0.4);
+        transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+        font-weight: bold;
+    }
+     #closeSettingsButton:hover {
+         background-color: #c82333;
+         box-shadow: 0 0 12px rgba(220, 53, 69, 0.6);
+         transform: scale(1.1);
+     }
+      #closeSettingsButton:active {
+          transform: scale(1);
+          box-shadow: 0 0 6px rgba(220, 53, 69, 0.3);
+      }
+
+    /* Media Queries for Responsiveness */
+    @media (max-width: 768px) {
+        body {
+            padding: 10px;
+        }
+
+        .container {
+            padding: 15px;
+        }
+
+        button {
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .batch-prompt-item {
+            flex-direction: column;
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        .batch-prompt-item input {
+            width: 100%;
+            margin-right: 0;
+        }
+
+        .batch-prompt-item button {
+            width: 100%;
+            margin-left: 0;
+        }
+
+        #imageOutput {
+             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+             gap: 10px;
+        }
+        .image-item {
+            padding: 10px;
+        }
+
+        .history-panel-toggle {
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            font-size: 1.5em;
+        }
+
+         .history-panel {
+             width: 90vw;
+             max-width: none;
+        }
+
+        #allModelsSettings .settings-content {
+            padding: 20px;
+        }
+
+         #closeSettingsButton {
+             top: 10px;
+             right: 10px;
+             width: 25px;
+             height: 25px;
+             font-size: 1.2em;
+             line-height: 25px;
+         }
+    }
+  </style>
+</head>
+<body>
+  <div class="history-panel-toggle" id="historyToggle">&#x2022;&#x2022;&#x2022;</div>
+
+  <div class="history-panel" id="historyPanel">
+    <h3>History</h3>
+    <div id="historyContent">
+      <!-- History items will be loaded here -->
+      <p>History is empty.</p>
+    </div>
+     <button id="clearHistoryButton" style="width: 100%; margin-top: 20px; background-color: #ff00ff; color: #1a1a2e; box-shadow: 0 0 8px rgba(255, 0, 255, 0.4);">Clear History</button>
+  </div>
+
+  <div class="container">
+    <h2>AI Image Generator</h2>
+
+    <label for="prompt">Prompt:</label><br>
+    <input type="text" id="prompt" placeholder="Enter your prompt here..." ><br>
+
+    <button id="enhancePromptButton">Enhance Prompt (using AI)</button>
+    <span id="promptEnhanceLoader" class="loader" style="display: none;"></span>
+    <p id="promptEnhanceStatus" style="display: inline-block; margin-left: 10px; color: #ffff00; text-shadow: 0 0 5px rgba(255, 255, 0, 0.5);"></p>
+
+    <button id="randomPromptButton">Random Prompt</button>
+    <button id="clearPromptButton">Clear Prompt</button>
+
+
+    <label for="model">Select Model:</label><br>
+    <select id="model">
+      <option value="provider-2/shuttle-3-diffusion">shuttle-3-diffusion</option>
+      <option value="provider-2/shuttle-jaguar">shuttle-jaguar</option>
+      <option value="provider-2/shuttle-3.1-aesthetic">shuttle-3.1-aesthetic</option>
+      <!-- Added Models -->
+      <option value="provider-2/flux-1.1-pro-ultra-raw">flux-1.1-pro-ultra-raw</option>
+      <option value="provider-2/flux-1.1-pro-ultra">flux-1.1-pro-ultra</option>
+      <option value="provider-2/flux-dev">flux-dev</option>
+      <option value="provider-2/flux-schnell">flux-schnell</option>
+    </select><br><br>
+
+    <div id="numImagesContainer">
+         <label for="numImages">Number of Images (for single model generation):</label><br>
+         <input type="number" id="numImages" value="1" min="1" max="4"><br><br>
+    </div>
+
+
+    <button id="generateButton">Generate Image(s)</button>
+    <button id="generateAllModelsButton">Generate from All Models</button>
+    <button id="generateAllModelsSettingsToggle" title="Settings for Generate All Models">&#x2699;</button>
+
+
+    <div id="statusMessage"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="loader"></div>
+        <p id="loadingMessage"></p>
+        <button id="cancelButton">Cancel Generation</button>
+    </div>
+
+
+    <!-- All Models Settings Overlay -->
+    <div id="allModelsSettings">
+         <div class="settings-content">
+             <button id="closeSettingsButton">&times;</button> 
+            <h4>Enabled Models for "Generate from All Models"</h4>
+            <div id="allModelsToggles">
+                <!-- Model toggles will be populated here by JS -->
+            </div>
+         </div>
+    </div>
+
+
+    <!-- Batch Comparison Section -->
+    <div class="batch-comparison-section" id="batchComparisonSection">
+        <button class="batch-comparison-toggle" id="toggleBatchComparisonButton">Toggle Batch Comparison Mode</button>
+        <div class="batch-content" id="batchContent">
+            <h4>Batch Prompts for Comparison</h4>
+             <p>Enter prompts below to generate and compare them side-by-side using the 'Generate Image(s)' button above. This mode generates 1 image per prompt using the selected model.</p>
+            <div id="batchPromptInputs">
+                <!-- Batch prompt inputs will be added here -->
+                 <div class="batch-prompt-item">
+                    <input type="text" placeholder="Enter batch prompt 0 here...">
+                </div>
+            </div>
+             <button id="addBatchPromptButton">Add Another Prompt Input</button>
+        </div>
+    </div>
+
+
+  </div>
+
+  <script type="module">
+    const API_BASE_URL = "https://api.devsdocode.com/v1";
+    const API_KEY = "ddc-free-8e5171eeac9148ed89969cc31002d99d";
+
+    const promptInput = document.getElementById("prompt");
+    const modelSelect = document.getElementById("model");
+    const numImagesInput = document.getElementById("numImages");
+    const imageOutputDiv = document.getElementById("imageOutput");
+    const generateButton = document.getElementById("generateButton");
+    const generateAllModelsButton = document.getElementById("generateAllModelsButton");
+    const generateAllModelsSettingsToggle = document.getElementById("generateAllModelsSettingsToggle");
+    const allModelsSettingsDiv = document.getElementById("allModelsSettings");
+    const allModelsTogglesDiv = document.getElementById("allModelsToggles");
+    const enhancePromptButton = document.getElementById("enhancePromptButton");
+    const randomPromptButton = document.getElementById("randomPromptButton");
+    const clearPromptButton = document.getElementById("clearPromptButton");
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const loadingMessage = document.getElementById("loadingMessage");
+    const cancelButton = document.getElementById("cancelButton");
+    const historyToggle = document.getElementById("historyToggle");
+    const historyPanel = document.getElementById("historyPanel");
+    const historyContent = document.getElementById("historyContent");
+    const clearHistoryButton = document.getElementById("clearHistoryButton");
+    const batchComparisonSection = document.getElementById("batchComparisonSection");
+    const toggleBatchComparisonButton = document.getElementById("toggleBatchComparisonButton");
+    const batchPromptInputsDiv = document.getElementById("batchPromptInputs");
+    const addBatchPromptButton = document.getElementById("addBatchPromptButton");
+    const promptEnhanceLoader = document.getElementById("promptEnhanceLoader");
+    const promptEnhanceStatus = document.getElementById("promptEnhanceStatus");
+    const statusMessageDiv = document.getElementById("statusMessage");
+    const closeSettingsButton = document.getElementById("closeSettingsButton"); 
+
+
+    let abortController = null;
+    let imageHistory = [];
+    const HISTORY_STORAGE_KEY = 'imageGenHistory';
+    const MODEL_TOGGLES_STORAGE_KEY = 'imageGenModelToggles';
+    const MAX_HISTORY_ITEMS = 20;
+    let historyBlobUrls = [];
+    let isBatchMode = false;
+    let enabledModels = {};
+
+    // --- Model Toggle Settings ---
+    function getAvailableModels() {
+        return Array.from(modelSelect.options).map(option => option.value);
+    }
+
+    function loadModelToggles() {
+        const savedToggles = localStorage.getItem(MODEL_TOGGLES_STORAGE_KEY);
+        const availableModels = getAvailableModels();
+        enabledModels = {};
+
+        if (savedToggles) {
+            try {
+                const parsedToggles = JSON.parse(savedToggles);
+                 // Initialize with saved state for available models
+                 availableModels.forEach(model => {
+                     if (parsedToggles.hasOwnProperty(model)) {
+                         enabledModels[model] = parsedToggles[model];
+                     } else {
+                         enabledModels[model] = true; // Default new models to enabled
+                     }
+                 });
+            } catch (e) {
+                console.error("Failed to load model toggles:", e);
+                 // If load fails, default all available models to enabled
+                 availableModels.forEach(model => {
+                     enabledModels[model] = true;
+                 });
+            }
+        } else {
+            // Default all available models to enabled if no saved state
+            availableModels.forEach(model => {
+                enabledModels[model] = true;
+            });
+        }
+        renderModelToggles();
+    }
+
+    function saveModelToggles() {
+        localStorage.setItem(MODEL_TOGGLES_STORAGE_KEY, JSON.stringify(enabledModels));
+    }
+
+    function renderModelToggles() {
+        allModelsTogglesDiv.innerHTML = '';
+        const availableModels = getAvailableModels();
+
+         availableModels.forEach(model => {
+            const modelName = model.split('/').pop();
+            const isEnabled = enabledModels[model] !== false; // Default is true if not explicitly false
+
+            const toggleItem = document.createElement('div');
+            toggleItem.classList.add('model-toggle-item');
+            toggleItem.innerHTML = `
+                <span>${modelName}</span>
+                <button class="model-toggle-button ${isEnabled ? 'on' : 'off'}" data-model="${model}">
+                    ${isEnabled ? 'ON' : 'OFF'}
+                </button>
+            `;
+            allModelsTogglesDiv.appendChild(toggleItem);
+        });
+
+        // Add event listeners after rendering
+        allModelsTogglesDiv.querySelectorAll('.model-toggle-button').forEach(button => {
+            button.addEventListener('click', handleModelToggleClick);
+        });
+    }
+
+    function handleModelToggleClick(event) {
+        const button = event.target;
+        const model = button.dataset.model;
+        const currentState = enabledModels[model] !== false;
+        const newState = !currentState;
+
+        enabledModels[model] = newState;
+        saveModelToggles();
+
+        button.classList.remove(currentState ? 'on' : 'off');
+        button.classList.add(newState ? 'on' : 'off');
+        button.textContent = newState ? 'ON' : 'OFF';
+    }
+
+    // --- Existing Functions (base64ToBlobUrl, revokeBlobUrls, downloadImage, callChatbotApi, callImageApi) ---
+    async function base64ToBlobUrl(base64, contentType = 'image/png') {
+        try {
+            const res = await fetch(`data:${contentType};base64,${base64}`);
+            const blob = await res.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            historyBlobUrls.push(blobUrl);
+            return blobUrl;
+        } catch (error) {
+            console.error("Error converting base64 to Blob URL:", error);
+            return null;
+        }
+    }
+
+    function revokeBlobUrls() {
+        historyBlobUrls.forEach(url => URL.revokeObjectURL(url));
+        historyBlobUrls = [];
+    }
+
+    window.downloadImage = (imageUrl, filename) => {
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    async function callChatbotApi(prompt) {
+        const message = `enhance this prompt + ${prompt} + only prompt`;
+        const body = {
+            model: "provider-2/gpt-4o",
+            messages: [{ role: "user", content: message }]
+        };
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/chat/completions`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${API_KEY}`
+                },
+                body: JSON.stringify(body)
+            });
+
+             if (!res.ok) {
+                 let errorDetails = `Status: ${res.status} ${res.statusText}`;
+                 try {
+                     const errorJson = await res.json();
+                     if (errorJson && errorJson.error && errorJson.error.message) {
+                          errorDetails += ` - ${errorJson.error.message}`;
+                     } else {
+                         const errorText = await res.text();
+                         if(errorText) errorDetails += ` - ${errorText}`;
+                     }
+                 } catch (e) {
+                     const errorText = await res.text();
+                     if(errorText) errorDetails += ` - ${errorText}`;
+                 }
+                 console.error("Chatbot API error:", errorDetails);
+                 throw new Error(`Prompt enhancement failed: ${errorDetails}`);
+             }
+
+            const data = await res.json();
+             if (data?.choices?.[0]?.message?.content) {
+                 return data.choices[0].message.content.trim();
+             } else {
+                 console.error("Chatbot API returned unexpected format:", data);
+                 throw new Error("Prompt enhancement failed: Unexpected API response format.");
+             }
+
+        } catch (error) {
+            console.error("Error calling chatbot API:", error);
+            throw error;
+        }
+    }
+
+    async function callImageApi(prompt, model, signal) {
+        const body = {
+            model: model,
+            prompt: prompt
+        };
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/images/generations`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${API_KEY}`
+                },
+                body: JSON.stringify(body),
+                signal: signal 
+            });
+
+            if (!res.ok) {
+                 let errorDetails = `Status: ${res.status} ${res.statusText}`;
+                 try {
+                     const errorJson = await res.json();
+                     if (errorJson && errorJson.error && errorJson.error.message) {
+                          errorDetails += ` - ${errorJson.error.message}`;
+                     } else {
+                         const errorText = await res.text();
+                         if(errorText) errorDetails += ` - ${errorText}`;
+                     }
+                 } catch (e) {
+                     const errorText = await res.text();
+                     if(errorText) errorDetails += ` - ${errorText}`;
+                 }
+                 console.error("Image API error:", errorDetails);
+                 throw new Error(`Image generation failed: ${errorDetails}`);
+            }
+
+            const data = await res.json();
+             if (data?.data?.[0]?.b64_json) {
+                 return data.data[0].b64_json; 
+             } else {
+                 throw new Error("Image generation successful but no image data received.");
+             }
+
+        } catch (error) {
+             if (error.name === 'AbortError') {
+                 console.log('Image generation aborted.');
+             } else {
+                 console.error("Error calling image API:", error);
+             }
+             throw error; 
+        }
+    }
+
+    // --- History Functions ---
+    function loadHistory() {
+        const savedHistory = localStorage.getItem(HISTORY_STORAGE_KEY);
+        if (savedHistory) {
+            try {
+                imageHistory = JSON.parse(savedHistory);
+                revokeBlobUrls(); // Clear old Blob URLs before creating new ones
+                 // Process history items to potentially recreate blob URLs and ensure structure
+                const processedHistory = [];
+                imageHistory.forEach(item => { 
+                    if (item && typeof item === 'object') {
+                        const processedItem = {
+                             prompt: item.prompt || "No prompt saved",
+                             model: item.model || "Unknown model",
+                             imageUrl: '', // Will be recreated as Blob URL if base64 exists
+                             base64: item.base64 || null,
+                             timestamp: item.timestamp || new Date().toISOString()
+                        };
+
+                        if (processedItem.base64) {
+                            // Defer async conversion, add placeholder to history first
+                            processedHistory.push(processedItem);
+
+                            // Async conversion for immediate display (doesn't affect saved data)
+                             base64ToBlobUrl(processedItem.base64, 'image/png')
+                                .then(blobUrl => {
+                                     if (blobUrl) {
+                                         // Find the item in the *actual* imageHistory array
+                                         // and update its imageUrl for the current session
+                                         const historyItem = imageHistory.find(h => h === processedItem);
+                                         if (historyItem) {
+                                             historyItem.imageUrl = blobUrl;
+                                             // Re-render history after a successful conversion
+                                             renderHistory();
+                                         }
+                                     } else {
+                                         console.error("Error converting base64 for history item on load:", processedItem);
+                                     }
+                                })
+                                .catch(e => console.error("Error converting base64 for history item on load:", e));
+
+                        } else if (item.imageUrl && !item.imageUrl.startsWith('data:')) {
+                             // Keep old imageUrls if they are not data URLs and no base64
+                            processedItem.imageUrl = item.imageUrl;
+                            processedHistory.push(processedItem);
+                        } else {
+                             // Skip items with invalid or missing data
+                             console.warn("Skipping invalid history item:", item);
+                        }
+                    } else {
+                        console.warn("Skipping invalid item found in history:", item);
+                    }
+                });
+                 imageHistory = processedHistory; // Update history with processed items
+                renderHistory(); // Initial render with available data
+            } catch (e) {
+                console.error("Failed to load history:", e);
+                imageHistory = [];
+                localStorage.removeItem(HISTORY_STORAGE_KEY);
+                renderHistory();
+            }
+        } else {
+            renderHistory();
+        }
+    }
+
+    function saveHistory() {
+        const historyToSave = imageHistory.map(item => {
+             // Save base64 only, no Blob URLs or old external URLs
+             return {
+                 prompt: item.prompt || "No prompt saved",
+                 model: item.model || "Unknown model",
+                 base64: item.base64 || null,
+                 timestamp: item.timestamp || new Date().toISOString()
+             };
+        }).filter(item => item.base64 !== null); // Only save items with base64 data
+
+        // Ensure history size limit before saving
+         while (historyToSave.length > MAX_HISTORY_ITEMS) {
+             historyToSave.shift(); // Remove the oldest item from the save list
+         }
+
+        localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(historyToSave));
+
+         // Also prune the in-memory imageHistory and revoke Blob URLs
+         while (imageHistory.length > MAX_HISTORY_ITEMS) {
+             const oldestItem = imageHistory.shift();
+              if (oldestItem.imageUrl && oldestItem.imageUrl.startsWith('blob:')) {
+                  const index = historyBlobUrls.indexOf(oldestItem.imageUrl);
+                  if (index > -1) {
+                      URL.revokeObjectURL(historyBlobUrls[index]);
+                      historyBlobUrls.splice(index, 1);
+                  }
+              }
+         }
+    }
+
+    async function addImageToHistory(item) {
+         // Create the history item object
+        const historyItem = {
+            prompt: item.prompt || "No prompt saved",
+            model: item.model || "Unknown model",
+            imageUrl: item.imageUrl || '', // Should be a Blob URL from generation process
+            base64: item.base64 || null, // Should be base64 from generation process
+            timestamp: new Date().toISOString()
+        };
+
+        // Add the item to the in-memory array
+        imageHistory.push(historyItem);
+
+        // Ensure Blob URL is tracked
+         if (historyItem.imageUrl && historyItem.imageUrl.startsWith('blob:') && !historyBlobUrls.includes(historyItem.imageUrl)) {
+             historyBlobUrls.push(historyItem.imageUrl);
+         } else if (!historyItem.imageUrl && historyItem.base64) {
+             // If imageUrl is missing but base64 exists (shouldn't happen with current generation flow,
+             // but good safeguard), convert it async for display
+             base64ToBlobUrl(historyItem.base64, 'image/png')
+                 .then(blobUrl => {
+                     if (blobUrl) {
+                          historyItem.imageUrl = blobUrl;
+                           renderHistory(); // Re-render to show the image once converted
+                     }
+                 })
+                 .catch(e => console.error("Error converting base64 to blob for history display:", e));
+         }
+
+        // Save the history (this will also prune the list)
+        saveHistory();
+
+        // Re-render the history panel
+        renderHistory();
+    }
+
+    function renderHistory() {
+        historyContent.innerHTML = '';
+        if (imageHistory.length === 0) {
+            historyContent.innerHTML = '<p>History is empty.</p>';
+            return;
+        }
+
+        // Reverse copy for display, but keep original order for shifting
+        [...imageHistory].reverse().forEach(item => {
+             if (!item || typeof item !== 'object' || !item.prompt || !item.model || (!item.imageUrl && !item.base64)) {
+                 console.warn("Skipping rendering of invalid history item:", item);
+                 return;
+             }
+
+            const historyItemDiv = document.createElement('div');
+            historyItemDiv.classList.add('history-item');
+            // Use imageUrl if available (Blob URL), otherwise check if base64 exists (will be converted on load)
+            const imgSrc = item.imageUrl || (item.base64 ? `data:image/png;base64,${item.base64}` : '');
+            // Show loader/text if image is still loading (blob conversion in progress)
+            const imgHtml = imgSrc ? `<img src="${imgSrc}" alt="History Image">` : '<p>Loading image...</p>';
+            const timestamp = item.timestamp ? new Date(item.timestamp).toLocaleString() : 'Unknown time';
+            historyItemDiv.innerHTML = `
+                <p>${item.prompt.substring(0, 100)}${item.prompt.length > 100 ? '...' : ''}</p>
+                <p><strong>Model:</strong> ${item.model.split('/').pop()}</p>
+                ${imgHtml}
+                <small>${timestamp}</small>
+            `;
+            historyItemDiv.addEventListener('click', () => {
+                promptInput.value = item.prompt;
+                // Find the model in the select options and set it
+                 const modelOption = Array.from(modelSelect.options).find(opt => opt.value === item.model);
+                 if (modelOption) {
+                    modelSelect.value = item.model;
+                 } else {
+                     console.warn(`Model ${item.model} not found in current options. Cannot set select value.`);
+                     // Optionally, alert the user or select the first option
+                 }
+                historyPanel.classList.remove('open');
+            });
+            historyContent.appendChild(historyItemDiv);
+        });
+    }
+
+    clearHistoryButton.addEventListener('click', () => {
+        if (confirm("Are you sure you want to clear all history? This cannot be undone.")) {
+             imageHistory = [];
+             saveHistory(); // Save empty array
+             revokeBlobUrls(); // Revoke all current blob URLs
+             renderHistory();
+        }
+    });
+
+    // --- Generation Handlers ---
+    generateButton.addEventListener('click', handleGenerateButtonClick);
+
+    async function handleGenerateButtonClick() {
+        if (isBatchMode) {
+            const prompts = Array.from(batchPromptInputsDiv.children).map(item => item.querySelector('input').value.trim()).filter(value => value !== '');
+            const model = modelSelect.value;
+
+            if (prompts.length > 0 && model) {
+                 await generateBatchImages(prompts, model);
+            } else {
+                 showStatusMessage("Please enter at least one prompt and select a model for batch generation.", true);
+            }
+
+        } else { 
+            const prompt = promptInput.value.trim();
+            const model = modelSelect.value;
+            const numImages = parseInt(numImagesInput.value);
+
+            if (prompt && model && numImages > 0) {
+                 showLoading(`Generating ${numImages} Image(s) using ${model.split('/').pop()}...`);
+                 imageOutputDiv.innerHTML = ''; 
+
+                 abortController = new AbortController();
+                 const signal = abortController.signal;
+
+                 const generationPromises = [];
+
+                 for (let i = 0; i < numImages; i++) {
+                      const itemContainer = document.createElement('div');
+                      itemContainer.classList.add('image-item');
+                      itemContainer.innerHTML = `<p>Image ${i + 1} (${model.split('/').pop()})</p><div id="single-item-${i}" style="text-align: center;"></div>`;
+                      imageOutputDiv.appendChild(itemContainer);
+
+                       const specificOutputDiv = itemContainer.querySelector(`#single-item-${i}`);
+                      specificOutputDiv.innerHTML = `<div class="loader"></div> Generating...`; 
+
+                      generationPromises.push((async () => {
+                          try {
+                              const base64 = await callImageApi(prompt, model, signal);
+                               specificOutputDiv.innerHTML = ''; 
+
+                              if (base64) {
+                                   const imageUrl = await base64ToBlobUrl(base64, 'image/png');
+                                   if (imageUrl) {
+                                        specificOutputDiv.innerHTML = `
+                                            <img src="${imageUrl}" alt="Generated Image">
+                                            <button onclick="downloadImage('${imageUrl}', '${prompt.substring(0, 30).replace(/[^a-z0-9]/gi, '_')}_${model.split('/').pop()}_${i+1}.png')">Download</button>
+                                        `;
+                                       addImageToHistory({ prompt, model, imageUrl, base64 }); 
+                                   } else {
+                                        specificOutputDiv.textContent = `Error displaying image.`;
+                                   }
+                              } else {
+                                  specificOutputDiv.textContent = `Error generating image.`;
+                              }
+                          } catch (error) {
+                               specificOutputDiv.innerHTML = ''; 
+                              if (error.name === 'AbortError') {
+                                   specificOutputDiv.textContent = "Generation cancelled.";
+                              } else {
+                                   console.error(`Error generating image ${i + 1}:`, error);
+                                  specificOutputDiv.textContent = `Error: ${error.message}`;
+                              }
+                              // Don't re-throw here, let other images continue
+                          }
+                       })()); // Immediately invoke the async function
+                 }
+
+                 try {
+                     await Promise.all(generationPromises.map(p => p.catch(e => e))); // Wait for all, catch errors individually
+                     showStatusMessage("Generation complete.");
+                 } catch (error) {
+                      // This catch would only be hit if Promise.all itself fails, which is unlikely here
+                     console.error("Unexpected error during single generation batch:", error);
+                     showStatusMessage(`Unexpected error: ${error.message}`, true);
+                 } finally {
+                     hideLoading();
+                     abortController = null; 
+                 }
+
+
+            } else {
+                showStatusMessage("Please enter a prompt, select a model, and number of images.", true);
+            }
+        }
+    }
+
+    async function generateBatchImages(prompts, model) {
+         showLoading("Generating Batch Images...");
+         imageOutputDiv.innerHTML = ''; 
+
+         const comparisonContainer = document.createElement('div');
+         comparisonContainer.style.display = 'grid';
+         comparisonContainer.style.gridTemplateColumns = `repeat(auto-fit, minmax(250px, 1fr))`; 
+         comparisonContainer.style.gap = '20px';
+         comparisonContainer.style.marginTop = '20px';
+         imageOutputDiv.appendChild(comparisonContainer);
+
+         abortController = new AbortController();
+         const signal = abortController.signal;
+
+         const generationPromises = prompts.map(async (p, index) => {
+             if (!p) {
+                 console.warn(`Skipping empty batch prompt at index ${index}.`);
+                  return; // Skip empty prompts
+             }
+             const itemContainer = document.createElement('div');
+              itemContainer.classList.add('image-item'); 
+              itemContainer.innerHTML = `<p>Prompt ${index + 1}: ${p.substring(0, 100)}${p.length > 100 ? '...' : ''}</p><div id="batch-item-${index}" style="text-align: center;"></div>`;
+             comparisonContainer.appendChild(itemContainer);
+
+             const specificOutputDiv = itemContainer.querySelector(`#batch-item-${index}`);
+             specificOutputDiv.innerHTML = `<div class="loader"></div> Generating...`; 
+
+              try {
+                  const base64 = await callImageApi(p, model, signal);
+                  specificOutputDiv.innerHTML = ''; 
+
+                  if (base64) {
+                       const imageUrl = await base64ToBlobUrl(base64, 'image/png');
+                       if (imageUrl) {
+                           specificOutputDiv.innerHTML = `
+                               <img src="${imageUrl}" alt="Generated Image" style="width: 100%; height: auto; border: 2px solid #ffff00; border-radius: 6px; box-shadow: 0 2px 8px rgba(255, 255, 0, 0.2);">
+                               <button style="margin-top: 15px; background-color: #00ffff; color: #1a1a2e;" onclick="downloadImage('${imageUrl}', '${p.substring(0, 30).replace(/[^a-z0-9]/gi, '_')}_${model.split('/').pop()}_batch_${index+1}.png')">Download</button>
+                           `;
+                           addImageToHistory({ prompt: p, model, imageUrl, base64 }); 
+                       } else {
+                           specificOutputDiv.textContent = `Error displaying image.`;
+                       }
+                  } else {
+                      specificOutputDiv.textContent = `Error generating image.`;
+                  }
+              } catch (error) {
+                  specificOutputDiv.innerHTML = ''; 
+                  if (error.name === 'AbortError') {
+                      specificOutputDiv.textContent = "Generation cancelled.";
+                  } else {
+                       console.error(`Error generating batch image for prompt ${index + 1}:`, error);
+                       specificOutputDiv.textContent = `Error: ${error.message}`;
+                  }
+                  // Don't re-throw here, let other batch items continue
+              }
+         });
+
+        try {
+             await Promise.all(generationPromises.map(p => p.catch(e => e))); 
+             showStatusMessage("Batch generation complete.");
+        } catch (error) {
+             console.error("Unexpected error during batch generation:", error);
+             showStatusMessage(`Unexpected error: ${error.message}`, true);
+        } finally {
+            hideLoading();
+            abortController = null; 
+        }
+    }
+
+    generateAllModelsButton.addEventListener('click', async () => {
+          const prompt = promptInput.value.trim();
+          const modelsToGenerate = getAvailableModels().filter(model => enabledModels[model] !== false); // Filter based on enabledModels state
+
+          if (!prompt) {
+              showStatusMessage("Please enter a prompt to generate from all models.", true);
+              return;
+          }
+          
+          if (modelsToGenerate.length === 0) {
+               showStatusMessage("No models are enabled for 'Generate from All Models'. Please enable models in settings.", true);
+               return;
+          }
+
+           showLoading(`Generating from ${modelsToGenerate.length} Model(s)...`);
+           imageOutputDiv.innerHTML = ''; 
+
+           abortController = new AbortController();
+           const signal = abortController.signal;
+
+           const generationPromises = modelsToGenerate.map(async (model) => {
+                const itemContainer = document.createElement('div');
+                 itemContainer.classList.add('image-item');
+                 itemContainer.innerHTML = `<p>Model: ${model.split('/').pop()}</p><div id="model-item-${model.replace(/[^a-z0-9]/gi, '-')}" style="text-align: center;"></div>`;
+                imageOutputDiv.appendChild(itemContainer);
+
+                 const specificOutputDiv = itemContainer.querySelector(`#model-item-${model.replace(/[^a-z0-9]/gi, '-')}`);
+                 specificOutputDiv.innerHTML = `<div class="loader"></div> Generating...`; 
+
+                try {
+                     const base64 = await callImageApi(prompt, model, signal);
+                    specificOutputDiv.innerHTML = ''; 
+
+                    if (base64) {
+                         const imageUrl = await base64ToBlobUrl(base64, 'image/png');
+                         if (imageUrl) {
+                              specificOutputDiv.innerHTML = `
+                                  <img src="${imageUrl}" alt="Generated Image">
+                                  <button onclick="downloadImage('${imageUrl}', '${prompt.substring(0, 30).replace(/[^a-z0-9]/gi, '_')}_${model.split('/').pop()}.png')">Download</button>
+                              `;
+                             addImageToHistory({ prompt, model, imageUrl, base64 }); 
+                         } else {
+                              specificOutputDiv.textContent = `Error displaying image.`;
+                         }
+                    } else {
+                        specificOutputDiv.textContent = `Error generating image.`;
+                    }
+                } catch (error) {
+                     specificOutputDiv.innerHTML = ''; 
+                    if (error.name === 'AbortError') {
+                         specificOutputDiv.textContent = "Generation cancelled.";
+                    } else {
+                         console.error(`Error generating for model ${model}:`, error);
+                        specificOutputDiv.textContent = `Error: ${error.message}`;
+                    }
+                    // Don't re-throw here, let other models continue
+                }
+            });
+
+           try {
+               await Promise.all(generationPromises.map(p => p.catch(e => e))); 
+               showStatusMessage("All models generation complete.");
+           } catch (error) {
+                console.error("Unexpected error during all models generation:", error);
+               showStatusMessage(`Unexpected error: ${error.message}`, true);
+           } finally {
+               hideLoading();
+                abortController = null; 
+           }
+      });
+
+    generateAllModelsSettingsToggle.addEventListener('click', () => {
+        allModelsSettingsDiv.classList.add('visible'); 
+         // Re-render toggles in case new models were added to the select element
+         renderModelToggles();
+    });
+
+    closeSettingsButton.addEventListener('click', () => {
+        allModelsSettingsDiv.classList.remove('visible'); 
+    });
+
+    addBatchPromptButton.addEventListener('click', () => {
+        const promptItemDiv = document.createElement('div');
+        promptItemDiv.classList.add('batch-prompt-item');
+
+        const newPromptInput = document.createElement('input');
+        newPromptInput.type = 'text';
+        newPromptInput.placeholder = `Enter batch prompt ${batchPromptInputsDiv.children.length} here...`; 
+        promptItemDiv.appendChild(newPromptInput);
+
+         const removeButton = document.createElement('button');
+         removeButton.textContent = 'Remove';
+         removeButton.classList.add('remove-prompt-button');
+         removeButton.addEventListener('click', () => {
+             batchPromptInputsDiv.removeChild(promptItemDiv);
+         });
+         promptItemDiv.appendChild(removeButton);
+
+        batchPromptInputsDiv.appendChild(promptItemDiv);
+    });
+
+    toggleBatchComparisonButton.addEventListener('click', () => {
+        isBatchMode = !isBatchMode;
+        batchComparisonSection.classList.toggle('visible', isBatchMode);
+
+        if (isBatchMode) {
+             toggleBatchComparisonButton.textContent = "Exit Batch Comparison Mode";
+             generateButton.textContent = "Generate Batch Images (using selected model)";
+             generateAllModelsButton.style.display = 'none'; 
+             generateAllModelsSettingsToggle.style.display = 'none'; 
+             allModelsSettingsDiv.classList.remove('visible'); 
+             numImagesInput.parentElement.style.display = 'none'; 
+        } else {
+             toggleBatchComparisonButton.textContent = "Toggle Batch Comparison Mode";
+             generateButton.textContent = "Generate Image(s)";
+             generateAllModelsButton.style.display = ''; 
+             generateAllModelsSettingsToggle.style.display = ''; 
+             numImagesInput.parentElement.style.display = ''; 
+        }
+         imageOutputDiv.innerHTML = '';
+         hideStatusMessage();
+         hideLoading(); 
+    });
+
+    function showLoading(message = "Generating Images...") {
+        loadingMessage.textContent = message;
+        loadingOverlay.style.display = "flex";
+        generateButton.disabled = true;
+        generateAllModelsButton.disabled = true;
+        enhancePromptButton.disabled = true;
+        randomPromptButton.disabled = true;
+        clearPromptButton.disabled = true;
+        addBatchPromptButton.disabled = true;
+        toggleBatchComparisonButton.disabled = true;
+        hideStatusMessage(); 
+    }
+
+    function hideLoading() {
+        loadingOverlay.style.display = "none";
+        loadingMessage.textContent = "";
+        generateButton.disabled = false;
+        generateAllModelsButton.disabled = false;
+        enhancePromptButton.disabled = false;
+        randomPromptButton.disabled = false;
+        clearPromptButton.disabled = false;
+        addBatchPromptButton.disabled = false;
+        toggleBatchComparisonButton.disabled = false;
+    }
+
+    function showStatusMessage(message, isError = false) {
+        statusMessageDiv.textContent = message;
+        statusMessageDiv.className = isError ? 'error' : ''; 
+        statusMessageDiv.style.display = "block";
+    }
+
+    function hideStatusMessage() {
+         statusMessageDiv.style.display = "none";
+         statusMessageDiv.textContent = "";
+         statusMessageDiv.className = "";
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadHistory(); 
+        loadModelToggles();
+    });
+
+    window.addEventListener('beforeunload', revokeBlobUrls);
+
+    enhancePromptButton.addEventListener('click', async () => {
+        const prompt = promptInput.value;
+
+        if (prompt) {
+            showLoading("Enhancing prompt...");
+            try {
+                const enhancedPrompt = await callChatbotApi(prompt);
+                promptInput.value = enhancedPrompt;
+                showStatusMessage("Prompt enhanced successfully.");
+            } catch (error) {
+                console.error("Error enhancing prompt:", error);
+                showStatusMessage(`Error enhancing prompt: ${error.message}`, true);
+            } finally {
+                hideLoading();
+            }
+        } else {
+            showStatusMessage("Please enter a prompt.", true);
+        }
+    });
+
+    randomPromptButton.addEventListener('click', () => {
+        const randomPrompt = "Random Prompt";
+        promptInput.value = randomPrompt;
+    });
+
+    clearPromptButton.addEventListener('click', () => {
+        promptInput.value = "";
+    });
+
+    cancelButton.addEventListener('click', () => {
+        if (abortController) {
+            abortController.abort();
+            abortController = null;
+        }
+    });
+
+    historyToggle.addEventListener('click', () => {
+        historyPanel.classList.toggle('open');
+    });
+  </script>
+</body>
+</html>
